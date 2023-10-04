@@ -182,21 +182,21 @@ class Routes {
     return await Monitor.getRequests(user);
   }
 
-  @Router.post("/monitor/requests")
+  @Router.post("/monitor/requests/:to")
   async sendMonitorRequest(session: WebSessionDoc, to: string) {
     const user = WebSession.getUser(session);
     const toId = (await User.getUserByUsername(to))._id;
     return await Monitor.sendRequest(user, toId);
   }
 
-  @Router.delete("/monitor/requests")
+  @Router.delete("/monitor/requests/:to")
   async removeMonitorRequest(session: WebSessionDoc, to: string) {
     const user = WebSession.getUser(session);
     const toId = (await User.getUserByUsername(to))._id;
     return await Monitor.removeRequest(user, toId);
   }
 
-  @Router.put("/monitor/requests")
+  @Router.put("/monitor/requests/:from")
   async acceptMonitorRequest(session: WebSessionDoc, from: string) {
     const user = WebSession.getUser(session);
     const fromId = (await User.getUserByUsername(from))._id;

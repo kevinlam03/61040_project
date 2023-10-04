@@ -101,6 +101,48 @@ const operations: operation[] = [
     method: "GET",
     fields: {  },
   },
+  {
+    name: "Get Monitors",
+    endpoint: "/api/monitored/:user",
+    method: "GET",
+    fields: { user: "input" },
+  },
+  {
+    name: "Remove Monitor",
+    endpoint: "/api/monitored/:target",
+    method: "DELETE",
+    fields: { target: "input" },
+  },
+  {
+    name: "Get Monitor Requests",
+    endpoint: "/api/monitored/requests",
+    method: "GET",
+    fields: { },
+  },
+  {
+    name: "Send Monitor Request",
+    endpoint: "/api/monitor/requests/:to",
+    method: "POST",
+    fields: { to: "input" },
+  },
+  {
+    name: "Remove Monitor Request/:to",
+    endpoint: "/api/monitor/requests",
+    method: "DELETE",
+    fields: { to: "input" },
+  },
+  {
+    name: "Accept Monitor Request",
+    endpoint: "/api/monitor/requests/:from",
+    method: "PUT",
+    fields: { from: "input" },
+  },
+  {
+    name: "Reject Monitor Request",
+    endpoint: "/api/monitor/requests/:from",
+    method: "PUT",
+    fields: { from: "input" },
+  },
 ];
 
 // Do not edit below here.
