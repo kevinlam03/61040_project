@@ -77,6 +77,30 @@ const operations: operation[] = [
     method: "DELETE",
     fields: { id: "input" },
   },
+  {
+    name: "Add Notification",
+    endpoint: "/api/users/:user/notifications",
+    method: "POST",
+    fields: { user: "input", content: "input"},
+  },
+  {
+    name: "Delete Notification",
+    endpoint: "/api/users/:user/notifications",
+    method: "DELETE",
+    fields: { notification: "input" },
+  },
+  {
+    name: "Read Notification",
+    endpoint: "/api/users/:user/notifications",
+    method: "PUT",
+    fields: { notification: "input" },
+  },
+  {
+    name: "Get Notifications",
+    endpoint: "/api/users/:user/notifications",
+    method: "GET",
+    fields: {  },
+  },
 ];
 
 // Do not edit below here.

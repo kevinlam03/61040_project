@@ -2,7 +2,7 @@ import { ObjectId } from "mongodb";
 
 import { Router, getExpressRouter } from "./framework/router";
 
-import { Friend, Post, User, WebSession } from "./app";
+import { Friend, Post, User, WebSession, Notification, Monitor } from "./app";
 import { PostDoc, PostOptions } from "./concepts/post";
 import { UserDoc } from "./concepts/user";
 import { WebSessionDoc } from "./concepts/websession";
@@ -135,6 +135,119 @@ class Routes {
     const user = WebSession.getUser(session);
     const fromId = (await User.getUserByUsername(from))._id;
     return await Friend.rejectRequest(fromId, user);
+  }
+
+  // NOTIFICATIONS
+  @Router.get("/users/:user/notifications/") 
+  async getUserNotifications(session: WebSessionDoc) {
+    const user = WebSession.getUser(session);
+
+    return await Notification.getUserNotifications(user);
+  }
+
+  @Router.post("/users/:user/notifications")
+  async addNotification(username: string, content: string) {
+      const user = await User.getUserByUsername(username);
+      return await Notification.addNotification(user._id, content);
+  }
+
+  @Router.delete("/users/:user/notifications")
+  async removeNotification(notification: ObjectId) {
+    return await Notification.removeNotification(notification)
+  }
+
+  @Router.put("/users/:user/notifications") 
+  async readNotification(notification: ObjectId) {
+    return await Notification.readNotification(notification)
+  }
+
+
+  // MONITOR
+  @Router.get("/monitored/:user/")
+  async getMonitored(session: WebSessionDoc) {
+    const user = WebSession.getUser(session);
+    return await Monitor.getMonitored(user);
+  }
+
+  @Router.delete("/monitored/:target")
+  async removeMonitor(session: WebSessionDoc, target: string) {
+    const monitor = WebSession.getUser(session);
+    const monitored = (await User.getUserByUsername(target))._id;
+    return await Monitor.removeMonitor(monitor, monitored);
+  }
+
+  @Router.get("/monitor/requests")
+  async getMonitorRequests(session: WebSessionDoc) {
+    const user = WebSession.getUser(session);
+    return await Monitor.getRequests(user);
+  }
+
+  @Router.post("/monitor/requests")
+  async sendMonitorRequest(session: WebSessionDoc, to: string) {
+    const user = WebSession.getUser(session);
+    const toId = (await User.getUserByUsername(to))._id;
+    return await Monitor.sendRequest(user, toId);
+  }
+
+  @Router.delete("/monitor/requests")
+  async removeMonitorRequest(session: WebSessionDoc, to: string) {
+    const user = WebSession.getUser(session);
+    const toId = (await User.getUserByUsername(to))._id;
+    return await Monitor.removeRequest(user, toId);
+  }
+
+  @Router.put("/monitor/requests")
+  async acceptMonitorRequest(session: WebSessionDoc, from: string) {
+    const user = WebSession.getUser(session);
+    const fromId = (await User.getUserByUsername(from))._id;
+    return await Monitor.acceptRequest(fromId, user);
+  }
+
+  @Router.put("/monitors/requests")
+  async rejectMonitorRequest(session: WebSessionDoc, from: string) {
+    const user = WebSession.getUser(session);
+    const fromId = (await User.getUserByUsername(from))._id;
+    return await Monitor.rejectRequest(fromId, user);
+  }
+
+
+
+  // FOLLOW
+  // Note: very similar to pre-implemented Friend concept, just need to add a few routes to Friend 
+  // once repurposed. 
+
+
+  // SCREENTIME
+  @Router.post("/users/:user/screentime/:url")
+  async setTimedUsed(url: string, username: string) {
+    // set timeUsed for user for specified url
+  }
+
+  @Router.get("/users/:user/screentime/:url")
+  async getTimedUsed(url: string, username: string) {
+    // get timeUsed for user for specified url
+  }
+
+  // TIMERESTRICTION
+  @Router.post("/users/:user/restrictions")
+  async addRestriction(url: string, username: string) {
+    // add restriction for user for specified url
+  }
+
+  @Router.delete("/users/:user/restrictions")
+  async removeRestriction(url: string, username: string) {
+    // remove restriction for user for specified url
+  }
+
+  @Router.get("/users/:user/restrictions/:url")
+  async isRestricted(url: string, username: string) {
+    // check restriction for user for specified url
+  }
+
+  // SEARCH
+  @Router.get("/search")
+  async searchPosts(search: string) {
+    // return all posts matching some keywords
   }
 }
 
