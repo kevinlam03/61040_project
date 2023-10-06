@@ -7,6 +7,7 @@ import { PostDoc, PostOptions } from "./concepts/post";
 import { UserDoc } from "./concepts/user";
 import { WebSessionDoc } from "./concepts/websession";
 import Responses from "./responses";
+import { BadValuesError, NotAllowedError } from "./concepts/errors";
 
 class Routes {
   @Router.get("/session")
@@ -138,27 +139,48 @@ class Routes {
   }
 
   // NOTIFICATIONS
-  @Router.get("/users/:user/notifications/") 
+  @Router.get("/notifications") 
   async getUserNotifications(session: WebSessionDoc) {
+    WebSession.isLoggedIn(session);
     const user = WebSession.getUser(session);
-
     return await Notification.getUserNotifications(user);
   }
 
-  @Router.post("/users/:user/notifications")
+  @Router.post("/notifications/:username")
+  // username is a url parameter, content is a body parameter
   async addNotification(username: string, content: string) {
+      if (!username || !content) {
+        throw new BadValuesError("Username and content must be non-empty!");
+      }
       const user = await User.getUserByUsername(username);
       return await Notification.addNotification(user._id, content);
   }
 
-  @Router.delete("/users/:user/notifications")
-  async removeNotification(notification: ObjectId) {
-    return await Notification.removeNotification(notification)
+  @Router.delete("/notifications/:notificationID")
+  async removeNotification(session: WebSessionDoc, notificationID: string) {
+    WebSession.isLoggedIn(session);
+    if (!notificationID) {
+      throw new BadValuesError("NotificationID must be non-empty!");
+    }
+
+    // check if user is allowed to remove notification
+    const user_id = WebSession.getUser(session);
+    Notification.userHasNotification(user_id, new ObjectId(notificationID));
+    return await Notification.removeNotification(new ObjectId(notificationID))
   }
 
-  @Router.put("/users/:user/notifications") 
-  async readNotification(notification: ObjectId) {
-    return await Notification.readNotification(notification)
+  @Router.patch("/notifications/:notificationID") 
+  async readNotification(session: WebSessionDoc, notificationID: string) {
+    WebSession.isLoggedIn(session);
+    if (!notificationID) {
+      throw new BadValuesError("NotificationID must be non-empty!");
+    }
+
+    // check if user is allowed to read notification
+    const user_id = WebSession.getUser(session);
+    Notification.userHasNotification(user_id, new ObjectId(notificationID));
+
+    return await Notification.readNotification(new ObjectId(notificationID));
   }
 
 

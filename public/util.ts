@@ -77,30 +77,32 @@ const operations: operation[] = [
     method: "DELETE",
     fields: { id: "input" },
   },
-  {
-    name: "Add Notification",
-    endpoint: "/api/users/:user/notifications",
-    method: "POST",
-    fields: { user: "input", content: "input"},
-  },
-  {
-    name: "Delete Notification",
-    endpoint: "/api/users/:user/notifications",
-    method: "DELETE",
-    fields: { notification: "input" },
-  },
-  {
-    name: "Read Notification",
-    endpoint: "/api/users/:user/notifications",
-    method: "PUT",
-    fields: { notification: "input" },
-  },
+  // NOTIFICATIONS
   {
     name: "Get Notifications",
-    endpoint: "/api/users/:user/notifications",
+    endpoint: "/api/notifications",
     method: "GET",
     fields: {  },
   },
+  {
+    name: "Add Notification",
+    endpoint: "/api/notifications/:username",
+    method: "POST",
+    fields: { username: "input", content: "input"},
+  },
+  {
+    name: "Delete Notification",
+    endpoint: "/api/notifications/:notificationID",
+    method: "DELETE",
+    fields: { notificationID: "input" },
+  },
+  {
+    name: "Read Notification",
+    endpoint: "/api/notifications/:notificationID",
+    method: "PUT",
+    fields: { notificationID: "input" },
+  },
+  
   {
     name: "Get Monitors",
     endpoint: "/api/monitored/:user",

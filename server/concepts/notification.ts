@@ -1,5 +1,6 @@
 import { ObjectId } from "mongodb";
 import DocCollection, { BaseDoc } from "../framework/doc";
+import { NotAllowedError, NotFoundError } from "./errors";
 
 
 export interface NotificationDoc extends BaseDoc {
@@ -14,10 +15,15 @@ export default class NotificationConcept {
     public readonly notifications = new DocCollection<NotificationDoc>("notifications");
 
     async addNotification(user: ObjectId, message: string) {
-        // create new notification for this user, should be unread 
-        await this.notifications.createOne({time: Date(), message, user, status:"unread"})
-
-        return { msg: "Added notification!" }
+        // create new unread notification for this user
+        const doc_id = await this.notifications.createOne({
+            time: Date(), 
+            message, 
+            user, 
+            status:"unread"
+        });
+        
+        return { msg: "Added notification!" };
     }
 
     async removeNotification(notification: ObjectId) {
@@ -27,17 +33,38 @@ export default class NotificationConcept {
         return { msg: "Deleted notification!" }
     }
 
-    async readNotification(notification: ObjectId) {
-        // remove unread notification, insert read notification
-        const updated = await this.notifications.readOne({_id:notification})
+    async readNotification(notificationID: ObjectId) {
+        // throw NotFoundError if not a real notification
+        this.notificationExists(notificationID);
         
-        await this.notifications.updateOne({_id:notification}, {status:"read"})
+        //const prev = await this.notifications.readOne({_id:notificationID})
+        
+        await this.notifications.updateOne({_id:notificationID}, {status:"read"})
 
         return { msg: "Updated notification status!"}
     }
 
     async getUserNotifications(user: ObjectId) {
         // get all notifications associated with a user
-        return await this.notifications.readMany({user:user})
+        if (user === null) {
+            throw new NotFoundError("User not found!")
+        }
+
+        return await this.notifications.readMany({user})
+    }
+
+    async notificationExists(notificationID: ObjectId) {
+        const notification = await this.notifications.readOne({_id:notificationID})
+        if (notification === null) {
+            throw new NotFoundError("Notification not found!")
+        }
+    }
+
+    async userHasNotification(user: ObjectId, notificationID: ObjectId) {
+        // notification must exist, and user must be user of that notification
+        const notif = await this.notifications.readOne({_id: notificationID, user: user});
+        if (notif === null) {
+            throw new NotFoundError("Notification not found for this user!")
+        }
     }
 }
