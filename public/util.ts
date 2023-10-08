@@ -102,49 +102,56 @@ const operations: operation[] = [
     method: "PUT",
     fields: { notificationID: "input" },
   },
-  
-  {
-    name: "Get Monitors",
-    endpoint: "/api/monitored/:user",
-    method: "GET",
-    fields: { user: "input" },
-  },
-  {
-    name: "Remove Monitor",
-    endpoint: "/api/monitored/:target",
-    method: "DELETE",
-    fields: { target: "input" },
-  },
+  // MONITORS
   {
     name: "Get Monitor Requests",
-    endpoint: "/api/monitored/requests",
+    endpoint: "/api/monitorRelations/requests",
     method: "GET",
     fields: { },
   },
   {
     name: "Send Monitor Request",
-    endpoint: "/api/monitor/requests/:to",
+    endpoint: "/api/monitorRelations/requests/:to",
     method: "POST",
-    fields: { to: "input" },
+    fields: { to: "input", },
   },
   {
-    name: "Remove Monitor Request/:to",
-    endpoint: "/api/monitor/requests",
+    name: "Remove Monitor Request",
+    endpoint: "/api/monitorRelations/requests/:to",
     method: "DELETE",
-    fields: { to: "input" },
+    fields: { to: "input", },
   },
   {
     name: "Accept Monitor Request",
-    endpoint: "/api/monitor/requests/:from",
+    endpoint: "/api/monitorRelations/requests/accept/:from",
     method: "PUT",
-    fields: { from: "input" },
+    fields: { from: "input", },
   },
   {
     name: "Reject Monitor Request",
-    endpoint: "/api/monitor/requests/:from",
+    endpoint: "/api/monitorRelations/requests/reject/:from",
     method: "PUT",
-    fields: { from: "input" },
+    fields: { from: "input", },
   },
+  {
+    name: "Get Monitor Relations",
+    endpoint: "/api/monitorRelations",
+    method: "GET",
+    fields: { },
+  },
+  {
+    name: "Stop Monitoring",
+    endpoint: "/api/monitorRelations/monitoring/:target",
+    method: "DELETE",
+    fields: { target: "input" },
+  },
+  {
+    name: "Remove Monitor",
+    endpoint: "/api/monitorRelations/monitor/:target",
+    method: "DELETE",
+    fields: { target: "input" },
+  },
+  
 ];
 
 // Do not edit below here.

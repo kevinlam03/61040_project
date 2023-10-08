@@ -1,3 +1,4 @@
+import { MonitorRelationDoc, MonitorRequestDoc } from "./concepts/monitors";
 import { User } from "./app";
 import { AlreadyFriendsError, FriendNotFoundError, FriendRequestAlreadyExistsError, FriendRequestDoc, FriendRequestNotFoundError } from "./concepts/friend";
 import { PostAuthorNotMatchError, PostDoc } from "./concepts/post";
@@ -37,6 +38,21 @@ export default class Responses {
     const usernames = await User.idsToUsernames(from.concat(to));
     return requests.map((request, i) => ({ ...request, from: usernames[i], to: usernames[i + requests.length] }));
   }
+
+  static async monitorRequests(requests: MonitorRequestDoc[]) {
+    const from = requests.map((request) => request.from);
+    const to = requests.map((request) => request.to);
+    const usernames = await User.idsToUsernames(from.concat(to));
+    return requests.map((request, i) => ({ ...request, from: usernames[i], to: usernames[i + requests.length] }));
+  }
+
+  static async monitorRelations(relations: MonitorRelationDoc[]) {
+    const monitored = relations.map((relation) => relation.monitored);
+    const monitor = relations.map((relation) => relation.monitor);
+    const usernames = await User.idsToUsernames(monitored.concat(monitor));
+    // convert each doc to have usernames instead of ids
+    return relations.map((relation, i) => ({...relation, monitored: usernames[i], monitor: usernames[i + relations.length] }));
+  }
 }
 
 Router.registerError(PostAuthorNotMatchError, async (e) => {
@@ -63,3 +79,5 @@ Router.registerError(AlreadyFriendsError, async (e) => {
   const [user1, user2] = await Promise.all([User.getUserById(e.user1), User.getUserById(e.user2)]);
   return e.formatWith(user1.username, user2.username);
 });
+
+

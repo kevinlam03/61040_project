@@ -138,7 +138,9 @@ class Routes {
     return await Friend.rejectRequest(fromId, user);
   }
 
+  /////////////////////
   // NOTIFICATIONS
+  /////////////////////
   @Router.get("/notifications") 
   async getUserNotifications(session: WebSessionDoc) {
     WebSession.isLoggedIn(session);
@@ -184,53 +186,73 @@ class Routes {
   }
 
 
+  /////////////////////
   // MONITOR
-  @Router.get("/monitored/:user/")
-  async getMonitored(session: WebSessionDoc) {
-    const user = WebSession.getUser(session);
-    return await Monitor.getMonitored(user);
-  }
-
-  @Router.delete("/monitored/:target")
-  async removeMonitor(session: WebSessionDoc, target: string) {
-    const monitor = WebSession.getUser(session);
-    const monitored = (await User.getUserByUsername(target))._id;
-    return await Monitor.removeMonitor(monitor, monitored);
-  }
-
-  @Router.get("/monitor/requests")
+  /////////////////////
+  @Router.get("/monitorRelations/requests")
   async getMonitorRequests(session: WebSessionDoc) {
     const user = WebSession.getUser(session);
-    return await Monitor.getRequests(user);
+    return await Responses.monitorRequests(await Monitor.getRequests(user));
   }
 
-  @Router.post("/monitor/requests/:to")
+  @Router.post("/monitorRelations/requests/:to")
   async sendMonitorRequest(session: WebSessionDoc, to: string) {
     const user = WebSession.getUser(session);
     const toId = (await User.getUserByUsername(to))._id;
-    return await Monitor.sendRequest(user, toId);
+
+    if (user.toString() === toId.toString()) {
+      throw new BadValuesError("You can't send a request to yourself!")
+    }
+
+    return await Monitor.sendMonitorRequest(user, toId);
   }
 
-  @Router.delete("/monitor/requests/:to")
+  @Router.delete("/monitorRelations/requests/:to")
   async removeMonitorRequest(session: WebSessionDoc, to: string) {
     const user = WebSession.getUser(session);
     const toId = (await User.getUserByUsername(to))._id;
-    return await Monitor.removeRequest(user, toId);
+
+    return await Monitor.removeRequest(user, toId, "pending");
   }
 
-  @Router.put("/monitor/requests/:from")
+  @Router.put("/monitorRelations/requests/accept/:from")
   async acceptMonitorRequest(session: WebSessionDoc, from: string) {
     const user = WebSession.getUser(session);
     const fromId = (await User.getUserByUsername(from))._id;
+
     return await Monitor.acceptRequest(fromId, user);
   }
 
-  @Router.put("/monitors/requests")
+  @Router.put("/monitorRelations/requests/reject/:from")
   async rejectMonitorRequest(session: WebSessionDoc, from: string) {
     const user = WebSession.getUser(session);
     const fromId = (await User.getUserByUsername(from))._id;
+
     return await Monitor.rejectRequest(fromId, user);
   }
+
+
+  @Router.get("/monitorRelations")
+  async getMonitorRelations(session: WebSessionDoc) {
+    const curr_user = WebSession.getUser(session);
+    return await Responses.monitorRelations(await Monitor.getMonitorRelations(new ObjectId(curr_user)));
+  }
+
+  @Router.delete("/monitorRelations/monitoring/:target")
+  async stopMonitoring(session: WebSessionDoc, target: string) {
+    const user = WebSession.getUser(session);
+    const monitored = (await User.getUserByUsername(target))._id;
+    return await Monitor.removeMonitor(user, monitored);
+  }
+
+  @Router.delete("/monitorRelations/monitor/:target")
+  async removeMonitor(session: WebSessionDoc, target: string) {
+    const user = WebSession.getUser(session);
+    const monitor = (await User.getUserByUsername(target))._id;
+    return await Monitor.removeMonitor(monitor, user);
+  }
+
+  
 
 
 

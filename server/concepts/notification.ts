@@ -37,9 +37,12 @@ export default class NotificationConcept {
         // throw NotFoundError if not a real notification
         this.notificationExists(notificationID);
         
-        //const prev = await this.notifications.readOne({_id:notificationID})
-        
-        await this.notifications.updateOne({_id:notificationID}, {status:"read"})
+        await this.notifications.updateOne(
+            {_id:notificationID}, 
+            { 
+                status:"read"
+            }
+        );
 
         return { msg: "Updated notification status!"}
     }
