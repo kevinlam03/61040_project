@@ -1,7 +1,7 @@
 import { ObjectId } from "mongodb";
 import DocCollection, { BaseDoc } from "../framework/doc";
 import { BadValuesError, NotAllowedError, NotFoundError } from "./errors";
-import { FriendRequestDoc } from "./friend";
+import { FriendRequestDoc } from "./follow";
 
 export interface MonitorRelationDoc extends BaseDoc {
   monitor: ObjectId;

@@ -2,8 +2,9 @@ import { ObjectId } from "mongodb";
 
 import { Router, getExpressRouter } from "./framework/router";
 
-import { Friend, Post, User, WebSession, Notification, Monitor } from "./app";
+import { Follow, Post, User, WebSession, Notification, Monitor } from "./app";
 import { PostDoc, PostOptions } from "./concepts/post";
+
 import { UserDoc } from "./concepts/user";
 import { WebSessionDoc } from "./concepts/websession";
 import Responses from "./responses";
@@ -91,51 +92,63 @@ class Routes {
     return Post.delete(_id);
   }
 
-  @Router.get("/friends")
-  async getFriends(session: WebSessionDoc) {
+  /////////////////////
+  // FOLLOW
+  /////////////////////
+  @Router.get("/follow")
+  async getFollowRelations(session: WebSessionDoc) {
     const user = WebSession.getUser(session);
-    return await User.idsToUsernames(await Friend.getFriends(user));
+    // do some Response converting here?
+    return await Follow.getRelations(user);
   }
 
-  @Router.delete("/friends/:friend")
-  async removeFriend(session: WebSessionDoc, friend: string) {
+  @Router.delete("/follow/following/:target")
+  async stopFollowing(session: WebSessionDoc, target: string) {
     const user = WebSession.getUser(session);
-    const friendId = (await User.getUserByUsername(friend))._id;
-    return await Friend.removeFriend(user, friendId);
+    const targetId = (await User.getUserByUsername(target))._id;
+    return await Follow.removeRelation(user, targetId);
   }
 
-  @Router.get("/friend/requests")
-  async getRequests(session: WebSessionDoc) {
+  @Router.delete("/follow/followers/:target")
+  async removeFollower(session: WebSessionDoc, target: string) {
     const user = WebSession.getUser(session);
-    return await Responses.friendRequests(await Friend.getRequests(user));
+    const targetId = (await User.getUserByUsername(target))._id;
+    return await Follow.removeRelation(targetId, user);
   }
 
-  @Router.post("/friend/requests/:to")
-  async sendFriendRequest(session: WebSessionDoc, to: string) {
+  // TODO: fix Responses
+  @Router.get("/follow/requests")
+  async getFollowRequests(session: WebSessionDoc) {
+    const user = WebSession.getUser(session);
+    return await Responses.friendRequests(await Follow.getRequests(user));
+  }
+
+  @Router.post("/follow/requests/:to")
+  async sendFollowRequest(session: WebSessionDoc, to: string) {
     const user = WebSession.getUser(session);
     const toId = (await User.getUserByUsername(to))._id;
-    return await Friend.sendRequest(user, toId);
+    return await Follow.sendRequest(user, toId);
   }
 
-  @Router.delete("/friend/requests/:to")
-  async removeFriendRequest(session: WebSessionDoc, to: string) {
+  @Router.delete("/follow/requests/:to")
+  async removeFollowRequest(session: WebSessionDoc, to: string) {
     const user = WebSession.getUser(session);
     const toId = (await User.getUserByUsername(to))._id;
-    return await Friend.removeRequest(user, toId);
+    return await Follow.removeRequest(user, toId);
   }
 
-  @Router.put("/friend/accept/:from")
-  async acceptFriendRequest(session: WebSessionDoc, from: string) {
+  @Router.put("/follow/accept/:from")
+  async acceptFollowRequest(session: WebSessionDoc, from: string) {
     const user = WebSession.getUser(session);
     const fromId = (await User.getUserByUsername(from))._id;
-    return await Friend.acceptRequest(fromId, user);
+    return await Follow.acceptRequest(fromId, user);
   }
 
-  @Router.put("/friend/reject/:from")
-  async rejectFriendRequest(session: WebSessionDoc, from: string) {
+  @Router.put("/follow/reject/:from")
+  async rejectFollowRequest(session: WebSessionDoc, from: string) {
     const user = WebSession.getUser(session);
     const fromId = (await User.getUserByUsername(from))._id;
-    return await Friend.rejectRequest(fromId, user);
+    return await Follow.rejectRequest(fromId, user);
   }
 
   /////////////////////
@@ -204,7 +217,7 @@ class Routes {
       throw new BadValuesError("You can't send a request to yourself!")
     }
 
-    return await Monitor.sendMonitorRequest(user, toId);
+    return await Monitor.sendRequest(user, toId);
   }
 
   @Router.delete("/monitorRelations/requests/:to")
@@ -212,7 +225,7 @@ class Routes {
     const user = WebSession.getUser(session);
     const toId = (await User.getUserByUsername(to))._id;
 
-    return await Monitor.removeRequest(user, toId, "pending");
+    return await Monitor.removeRequest(user, toId);
   }
 
   @Router.put("/monitorRelations/requests/accept/:from")
@@ -220,7 +233,7 @@ class Routes {
     const user = WebSession.getUser(session);
     const fromId = (await User.getUserByUsername(from))._id;
 
-    return await Monitor.acceptRequest(fromId, user);
+    return await Monitor.acceptShareRequest(fromId, user);
   }
 
   @Router.put("/monitorRelations/requests/reject/:from")
@@ -235,21 +248,22 @@ class Routes {
   @Router.get("/monitorRelations")
   async getMonitorRelations(session: WebSessionDoc) {
     const curr_user = WebSession.getUser(session);
-    return await Responses.monitorRelations(await Monitor.getMonitorRelations(new ObjectId(curr_user)));
+    // TODO: Fix responses
+    return /*await Responses.monitorRelations(*/await Monitor.getRelations(new ObjectId(curr_user));
   }
 
   @Router.delete("/monitorRelations/monitoring/:target")
   async stopMonitoring(session: WebSessionDoc, target: string) {
     const user = WebSession.getUser(session);
-    const monitored = (await User.getUserByUsername(target))._id;
-    return await Monitor.removeMonitor(user, monitored);
+    const targetId = (await User.getUserByUsername(target))._id;
+    return await Monitor.removeRelation(user, targetId);
   }
 
-  @Router.delete("/monitorRelations/monitor/:target")
+  @Router.delete("/monitorRelations/monitors/:target")
   async removeMonitor(session: WebSessionDoc, target: string) {
     const user = WebSession.getUser(session);
-    const monitor = (await User.getUserByUsername(target))._id;
-    return await Monitor.removeMonitor(monitor, user);
+    const targetId = (await User.getUserByUsername(target))._id;
+    return await Monitor.removeRelation(targetId, user);
   }
 
   
