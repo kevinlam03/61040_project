@@ -2,12 +2,12 @@ import { ObjectId } from "mongodb";
 import DocCollection, { BaseDoc } from "../framework/doc";
 import { NotAllowedError, NotFoundError } from "./errors";
 
-interface FeedDoc extends BaseDoc {
+export interface FeedDoc extends BaseDoc {
     user: ObjectId,
     post: ObjectId,
 }
 
-interface StarredDoc extends BaseDoc {
+export interface StarredDoc extends BaseDoc {
     user: ObjectId,
     target: ObjectId,
 }
@@ -16,6 +16,10 @@ interface StarredDoc extends BaseDoc {
 export default class FeedConcept {
     public readonly feeds = new DocCollection<FeedDoc>("feeds");
     public readonly starred = new DocCollection<StarredDoc>("starred");
+
+    async getStarred(user: ObjectId) {
+        return await this.starred.readMany({user});
+    }
 
     async addStar(user: ObjectId, target: ObjectId) {
         await this.canAddStar(user, target);
@@ -45,6 +49,15 @@ export default class FeedConcept {
     async getFeed(user: ObjectId, /*count: number*/) {
         const res = await this.feeds.readMany({user});
         return res
+    }
+
+    async starredStatus(user: ObjectId, target: ObjectId) {
+        try {
+            this.canRemoveStar(user, target);
+            return true
+        } catch (e) {
+            return false
+        }
     }
 
     async canAddToFeed(user: ObjectId, post: ObjectId) {
@@ -78,8 +91,8 @@ export default class FeedConcept {
 
 export class StarredUserNotFoundError extends NotFoundError {
     constructor(
-        user: ObjectId,
-        target: ObjectId,
+        public readonly user: ObjectId,
+        public readonly target: ObjectId,
     ) {
         super("{0} hasn't starred {1} yet!", user, target)
     }
@@ -87,8 +100,8 @@ export class StarredUserNotFoundError extends NotFoundError {
 
 export class AlreadyStarredUserError extends NotAllowedError {
     constructor(
-        user: ObjectId,
-        target: ObjectId,
+        public readonly user: ObjectId,
+        public readonly target: ObjectId,
     ) {
         super("{0} has already starred {1}!", user, target)
     }
@@ -96,8 +109,8 @@ export class AlreadyStarredUserError extends NotAllowedError {
 
 export class PostInFeedAlreadyExistsError extends NotAllowedError {
     constructor(
-        user: ObjectId,
-        post: ObjectId,
+        public readonly user: ObjectId,
+        public readonly post: ObjectId,
     ) {
         super("Post {1} is already in {0}'s feed!", user, post)
     }
@@ -105,8 +118,8 @@ export class PostInFeedAlreadyExistsError extends NotAllowedError {
 
 export class PostNotFoundInFeedError extends NotFoundError {
     constructor(
-        user: ObjectId,
-        post: ObjectId,
+        public readonly user: ObjectId,
+        public readonly post: ObjectId,
     ) {
         super("Post {1} is not in {0}'s feed!", user, post)
     }

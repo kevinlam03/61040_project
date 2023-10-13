@@ -33,7 +33,8 @@ export default class ScreenTimeConcept {
             await this.dataExists(user, feature, date);
         } catch( ScreenTimeDataNotFoundError ) {
             await this.screenTime.createOne({
-                user, feature, 
+                user, 
+                feature: { name: feature.name}, 
                 day: date.day,
                 month: date.month,
                 year: date.year,
@@ -41,7 +42,7 @@ export default class ScreenTimeConcept {
             });
         }
 
-        const prevTimeUsed = (await this.screenTime.readOne({
+        /*const prevTimeUsed = (await this.screenTime.readOne({
             user, feature, 
             day: date.day,
             month: date.month,
@@ -49,20 +50,25 @@ export default class ScreenTimeConcept {
         }))?.timeUsed;
 
         if (prevTimeUsed === undefined) {
-            return Error("This shouldn't happen.")
+            console.log("This shouldn't happen")
+            throw new Error("This shouldn't happen.")
         }
+        */
 
         await this.screenTime.updateOne(
             { 
-                user, feature,
+                user, 
+                feature : { name: feature.name },
                 day: date.day,
                 month: date.month,
                 year: date.year,
             }, 
             {
-                timeUsed: prevTimeUsed + time
+                timeUsed: time
             }
         );
+
+        return { msg: "Updated screenTime!"}
 
     }
     
@@ -70,7 +76,8 @@ export default class ScreenTimeConcept {
         await this.dataExists(user, feature, date);
 
         const res = await this.screenTime.readOne({
-            user, feature,
+            user, 
+            feature: { name: feature.name },
             day: date.day,
             month: date.month,
             year: date.year,
@@ -83,9 +90,12 @@ export default class ScreenTimeConcept {
         return res.timeUsed
     }
 
+    // always fails, always making new document right now
     async dataExists(user: ObjectId, feature: Feature, date: {day: number, month: number, year: number}) {
+        console.log(feature.name, date);
         const res = await this.screenTime.readOne({
-            user, feature,
+            user, 
+            feature: { name: feature.name},
             day: date.day,
             month: date.month,
             year: date.year,
@@ -99,9 +109,9 @@ export default class ScreenTimeConcept {
 
 export class ScreenTimeDataNotFoundError extends NotAllowedError {
     constructor(
-        user: ObjectId,
-        date: {day: number, month: number, year: number},
+        public readonly user: ObjectId,
+        public readonly date: {day: number, month: number, year: number},
     ) {
-        super("ScreenTime data wasn't found for {0} for {date.month}/{date.day}/{date.year}.", user, date)
+        super("ScreenTime data wasn't found for {0} for {1}.", user, date)
     }
 }

@@ -129,16 +129,28 @@ const operations: operation[] = [
   },
   // FEED
   {
-    name: "Get Feed",
-    endpoint: "/api/feed",
+    name: "Get Starred Feed",
+    endpoint: "/api/feed/starredFeed",
+    method: "GET",
+    fields: { },
+  },
+  {
+    name: "Get Not Starred Feed",
+    endpoint: "/api/feed/notStarredFeed",
     method: "GET",
     fields: { },
   },
   {
     name: "Remove From Feed",
-    endpoint: "/api/feed/:username/:postID",
+    endpoint: "/api/feed/posts/:postID",
     method: "DELETE",
-    fields: { username: "input", postID: "input"},
+    fields: { postID: "input"},
+  },
+  {
+    name: "Get Starred",
+    endpoint: "/api/feed/stars",
+    method: "GET",
+    fields: { },
   },
   {
     name: "Add Star",
@@ -228,6 +240,18 @@ const operations: operation[] = [
   },
   // SCREENTIME
   {
+    name: "Get Time Used",
+    endpoint: "/api/screenTime/:username/:feature",
+    method: "GET",
+    fields: { 
+      username: "input",
+      feature: "input",
+      day: "input",
+      month: "input",
+      year: "input",
+   },
+  },
+  {
     name: "Set Time Used",
     endpoint: "/api/screenTime/:username/:feature",
     method: "POST",
@@ -235,62 +259,42 @@ const operations: operation[] = [
       username: "input",
       feature: "input",
       time: "input",
-      date: {
-        day: "input",
-        month: "input",
-        year: "input",
-      }
-   },
-  },
-  {
-    name: "Get Time Used",
-    endpoint: "/api/screenTime/:username/:feature",
-    method: "POST",
-    fields: { 
-      username: "input",
-      feature: "input",
-      date: {
-        day: "input",
-        month: "input",
-        year: "input",
-      }
+      day: "input",
+      month: "input",
+      year: "input",
    },
   },
   {
     name: "Add Time Restriction",
-    endpoint: "/api/restrictions/:username/:feature",
+    endpoint: "/api/restrictions/:feature",
     method: "POST",
     fields: { 
-      username: "input",
       feature: "input",
       limit: "input",
    },
   },
   {
     name: "Update Time Restriction",
-    endpoint: "/api/restrictions/:username/:feature",
+    endpoint: "/api/restrictions/:feature",
     method: "PUT",
     fields: { 
-      username: "input",
       feature: "input",
       limit: "input",
    },
   },
   {
     name: "Remove Time Restriction",
-    endpoint: "/api/restrictions/:username/:feature",
+    endpoint: "/api/restrictions/:feature",
     method: "DELETE",
     fields: { 
-      username: "input",
       feature: "input",
    },
   },
   {
     name: "Check Time Restriction",
-    endpoint: "/api/restrictions/:username/:feature",
+    endpoint: "/api/restrictions/:feature",
     method: "GET",
     fields: { 
-      username: "input",
       feature: "input",
    },
   },

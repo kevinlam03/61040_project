@@ -78,7 +78,7 @@ export class TimeRestrictionNotFoundError extends NotFoundError {
         public readonly user: ObjectId,
         public readonly feature: Feature,
     ) {
-        super("Time Restriction on {1} not found for {0}!", user, feature.name);
+        super("Time Restriction on {1} not found for {0}!", user, feature);
     }
 }
 
@@ -87,7 +87,7 @@ export class TimeRestrictionAlreadyExistsError extends NotAllowedError {
         public readonly user: ObjectId,
         public readonly feature: Feature,
     ) {
-        super("Time restriction on {1} already exists for {0}!", user, feature.name)
+        super("Time restriction on {1} already exists for {0}!", user, feature)
     }
 }
 
