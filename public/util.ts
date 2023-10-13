@@ -53,6 +53,56 @@ const operations: operation[] = [
     method: "GET",
     fields: { username: "input" },
   },
+  // FOLLOW
+  {
+    name: "Get Follow Relations",
+    endpoint: "/api/follow",
+    method: "GET",
+    fields: { },
+  },
+  {
+    name: "Stop Following",
+    endpoint: "/api/follow/following/:target",
+    method: "DELETE",
+    fields: { target: "input" },
+  },
+  {
+    name: "Remove Follower",
+    endpoint: "/api/follow/followers/:target",
+    method: "DELETE",
+    fields: { target: "input" },
+  },
+  {
+    name: "Get Follow Requests",
+    endpoint: "/api/follow/requests",
+    method: "GET",
+    fields: { },
+  },
+  {
+    name: "Send Follow Request",
+    endpoint: "/api/follow/requests/:to",
+    method: "POST",
+    fields: { to: "input" },
+  },
+  {
+    name: "Remove Follow Request",
+    endpoint: "/api/follow/requests/:to",
+    method: "DELETE",
+    fields: { to: "input" },
+  },
+  {
+    name: "Accept Follow Request",
+    endpoint: "/api/follow/accept/:from",
+    method: "PUT",
+    fields: { from: "input" },
+  },
+  {
+    name: "Reject Follow Request",
+    endpoint: "/api/follow/reject/:from",
+    method: "PUT",
+    fields: { from: "input" },
+  },
+  // POSTS
   {
     name: "Get Posts (empty for all)",
     endpoint: "/api/posts",
@@ -76,6 +126,31 @@ const operations: operation[] = [
     endpoint: "/api/posts/:id",
     method: "DELETE",
     fields: { id: "input" },
+  },
+  // FEED
+  {
+    name: "Get Feed",
+    endpoint: "/api/feed",
+    method: "GET",
+    fields: { },
+  },
+  {
+    name: "Remove From Feed",
+    endpoint: "/api/feed/:username/:postID",
+    method: "DELETE",
+    fields: { username: "input", postID: "input"},
+  },
+  {
+    name: "Add Star",
+    endpoint: "/api/feed/stars/:target",
+    method: "POST",
+    fields: { target: "input"},
+  },
+  {
+    name: "Remove Star",
+    endpoint: "/api/feed/stars/:target",
+    method: "DELETE",
+    fields: { target: "input"},
   },
   // NOTIFICATIONS
   {
@@ -151,7 +226,74 @@ const operations: operation[] = [
     method: "DELETE",
     fields: { target: "input" },
   },
-  
+  // SCREENTIME
+  {
+    name: "Set Time Used",
+    endpoint: "/api/screenTime/:username/:feature",
+    method: "POST",
+    fields: { 
+      username: "input",
+      feature: "input",
+      time: "input",
+      date: {
+        day: "input",
+        month: "input",
+        year: "input",
+      }
+   },
+  },
+  {
+    name: "Get Time Used",
+    endpoint: "/api/screenTime/:username/:feature",
+    method: "POST",
+    fields: { 
+      username: "input",
+      feature: "input",
+      date: {
+        day: "input",
+        month: "input",
+        year: "input",
+      }
+   },
+  },
+  {
+    name: "Add Time Restriction",
+    endpoint: "/api/restrictions/:username/:feature",
+    method: "POST",
+    fields: { 
+      username: "input",
+      feature: "input",
+      limit: "input",
+   },
+  },
+  {
+    name: "Update Time Restriction",
+    endpoint: "/api/restrictions/:username/:feature",
+    method: "PUT",
+    fields: { 
+      username: "input",
+      feature: "input",
+      limit: "input",
+   },
+  },
+  {
+    name: "Remove Time Restriction",
+    endpoint: "/api/restrictions/:username/:feature",
+    method: "DELETE",
+    fields: { 
+      username: "input",
+      feature: "input",
+   },
+  },
+  {
+    name: "Check Time Restriction",
+    endpoint: "/api/restrictions/:username/:feature",
+    method: "GET",
+    fields: { 
+      username: "input",
+      feature: "input",
+   },
+  },
 ];
 
 // Do not edit below here.

@@ -1,7 +1,6 @@
 import { ObjectId } from "mongodb";
 import DocCollection, { BaseDoc } from "../framework/doc";
 import { NotAllowedError, NotFoundError } from "./errors";
-import { FindOptions } from "mongodb";
 
 interface FeedDoc extends BaseDoc {
     user: ObjectId,
@@ -43,7 +42,7 @@ export default class FeedConcept {
         return { msg: "Removed from feed!" };
     }
 
-    async getFeed(user: ObjectId, count: number) {
+    async getFeed(user: ObjectId, /*count: number*/) {
         const res = await this.feeds.readMany({user});
         return res
     }

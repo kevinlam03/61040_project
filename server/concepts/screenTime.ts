@@ -14,6 +14,7 @@ export interface ScreenTimeDoc extends BaseDoc {
     // add information on whether restriction was followed today?
 }
 
+// Check features to make sure they're correct 
 export default class ScreenTimeConcept {
     public readonly screenTime = new DocCollection<ScreenTimeDoc>("screenTime");
 
@@ -26,27 +27,25 @@ export default class ScreenTimeConcept {
         }
     }
 
-    async setTimeUsed(user: ObjectId, feature: Feature, date: Date, time: number) {
+    async setTimeUsed(user: ObjectId, feature: Feature, date: {day: number, month: number, year: number}, time: number) {
         // Create document if it doesn't already exist 
-        const cleanedDate = ScreenTimeConcept.getDayMonthYear(date);
-
         try {
             await this.dataExists(user, feature, date);
         } catch( ScreenTimeDataNotFoundError ) {
             await this.screenTime.createOne({
                 user, feature, 
-                day: cleanedDate.day,
-                month: cleanedDate.month,
-                year: cleanedDate.year,
+                day: date.day,
+                month: date.month,
+                year: date.year,
                 timeUsed: 0,
             });
         }
 
         const prevTimeUsed = (await this.screenTime.readOne({
             user, feature, 
-            day: cleanedDate.day,
-            month: cleanedDate.month,
-            year: cleanedDate.year,
+            day: date.day,
+            month: date.month,
+            year: date.year,
         }))?.timeUsed;
 
         if (prevTimeUsed === undefined) {
@@ -56,9 +55,9 @@ export default class ScreenTimeConcept {
         await this.screenTime.updateOne(
             { 
                 user, feature,
-                day: cleanedDate.day,
-                month: cleanedDate.month,
-                year: cleanedDate.year,
+                day: date.day,
+                month: date.month,
+                year: date.year,
             }, 
             {
                 timeUsed: prevTimeUsed + time
@@ -67,15 +66,14 @@ export default class ScreenTimeConcept {
 
     }
     
-    async getTimeUsed(user: ObjectId, feature: Feature, date: Date) {
+    async getTimeUsed(user: ObjectId, feature: Feature, date: {day: number, month: number, year: number}) {
         await this.dataExists(user, feature, date);
 
-        const cleanedDate = ScreenTimeConcept.getDayMonthYear(date);
         const res = await this.screenTime.readOne({
-            user, feature, 
-            day: cleanedDate.day,
-            month: cleanedDate.month,
-            year: cleanedDate.year,
+            user, feature,
+            day: date.day,
+            month: date.month,
+            year: date.year,
         });
 
         if (res === null) {
@@ -85,25 +83,25 @@ export default class ScreenTimeConcept {
         return res.timeUsed
     }
 
-    async dataExists(user: ObjectId, feature: Feature, date: Date) {
-        const cleanedDate = ScreenTimeConcept.getDayMonthYear(date);
+    async dataExists(user: ObjectId, feature: Feature, date: {day: number, month: number, year: number}) {
         const res = await this.screenTime.readOne({
-            user, feature, 
-            day: cleanedDate.day,
-            month: cleanedDate.month,
-            year: cleanedDate.year,
+            user, feature,
+            day: date.day,
+            month: date.month,
+            year: date.year,
         });
 
         if (res === null) {
-            throw new ScreenTimeDataNotFoundError(user);
+            throw new ScreenTimeDataNotFoundError(user, date);
         }
     }
 }
 
 export class ScreenTimeDataNotFoundError extends NotAllowedError {
     constructor(
-        user: ObjectId
+        user: ObjectId,
+        date: {day: number, month: number, year: number},
     ) {
-        super("ScreenTime data wasn't found for {0}.", user)
+        super("ScreenTime data wasn't found for {0} for {date.month}/{date.day}/{date.year}.", user, date)
     }
 }

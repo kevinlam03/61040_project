@@ -2,7 +2,18 @@ import { ObjectId } from "mongodb";
 
 import { Router, getExpressRouter } from "./framework/router";
 
-import { Follow, Post, User, WebSession, Notification, Monitor } from "./app";
+import { 
+  Follow, 
+  Feed,
+  Post, 
+  User, 
+  WebSession, 
+  Notification, 
+  Monitor, 
+  ScreenTime,
+  TimeRestriction,
+} from "./app";
+
 import { PostDoc, PostOptions } from "./concepts/post";
 
 import { UserDoc } from "./concepts/user";
@@ -59,6 +70,9 @@ class Routes {
     return { msg: "Logged out!" };
   }
 
+  /////////////////////
+  // POSTS
+  /////////////////////
   @Router.get("/posts")
   async getPosts(author?: string) {
     let posts;
@@ -93,6 +107,41 @@ class Routes {
   }
 
   /////////////////////
+  // FEED
+  /////////////////////
+  @Router.get("/feed") 
+  async getFeed(session: WebSessionDoc) {
+    const user_id = WebSession.getUser(session);
+    return await Feed.getFeed(user_id);
+  }
+
+  @Router.delete("/feed/:username/:postID")
+  async removeFromFeed(username: string, postID: string) {
+    const user_id = (await User.getUserByUsername(username))._id;
+    return await Feed.removeFromFeed(user_id, new ObjectId(postID));
+  }
+
+  @Router.post("/feed/stars/:target")
+  async addStar(session: WebSessionDoc, target: string) {
+    console.log("addstar")
+    const user_id = WebSession.getUser(session);
+    const target_id = (await User.getUserByUsername(target))._id;
+    // to add a star, you must be following them
+    await Follow.isViewing(user_id, target_id);
+    return await Feed.addStar(user_id, target_id);
+  }
+
+  // not sure why the handler isn't being called...
+  @Router.delete("/feed/stars/:target")
+  async removeStar(session: WebSessionDoc, target: string) {
+    console.log("here1");
+    const user_id = WebSession.getUser(session);
+    console.log("here");
+    const target_id = (await User.getUserByUsername(target))._id;
+    return await Feed.removeStar(user_id, target_id);
+  }
+
+  /////////////////////
   // FOLLOW
   /////////////////////
   @Router.get("/follow")
@@ -120,7 +169,7 @@ class Routes {
   @Router.get("/follow/requests")
   async getFollowRequests(session: WebSessionDoc) {
     const user = WebSession.getUser(session);
-    return await Responses.friendRequests(await Follow.getRequests(user));
+    return await Responses.relationRequests(await Follow.getRequests(user));
   }
 
   @Router.post("/follow/requests/:to")
@@ -205,7 +254,7 @@ class Routes {
   @Router.get("/monitorRelations/requests")
   async getMonitorRequests(session: WebSessionDoc) {
     const user = WebSession.getUser(session);
-    return await Responses.monitorRequests(await Monitor.getRequests(user));
+    return await Responses.relationRequests(await Monitor.getRequests(user));
   }
 
   @Router.post("/monitorRelations/requests/:to")
@@ -266,47 +315,86 @@ class Routes {
     return await Monitor.removeRelation(targetId, user);
   }
 
-  
 
 
-
-  // FOLLOW
-  // Note: very similar to pre-implemented Friend concept, just need to add a few routes to Friend 
-  // once repurposed. 
-
-
+  /////////////////////
   // SCREENTIME
-  @Router.post("/users/:user/screentime/:url")
-  async setTimedUsed(url: string, username: string) {
-    // set timeUsed for user for specified url
+  /////////////////////
+  @Router.post("/api/screenTime/:username/:feature")
+  async setTimedUsed(username: string, feature: string, time: string, date: {day: string, month: number, year: number}) {
+    // set timeUsed for user for specified feature
+    const user_id = (await User.getUserByUsername(username))._id;
+    return await ScreenTime.setTimeUsed(
+      user_id, 
+      { name: feature }, 
+      {
+        day: Number(date.day), 
+        month: Number(date.month), 
+        year: Number(date.year)
+      },
+      Number(time),
+    );
   }
 
-  @Router.get("/users/:user/screentime/:url")
-  async getTimedUsed(url: string, username: string) {
-    // get timeUsed for user for specified url
+  @Router.get("screenTime/:username/:feature")
+  async getTimedUsed(session: WebSessionDoc, username: string, feature: string, date: {day: string, month: number, year: number}) {
+    // get timeUsed for user, make sure current session is a monitor or self
+    const target_id = (await User.getUserByUsername(username))._id;
+    const user = WebSession.getUser(session);
+
+    await Monitor.isViewing(user, target_id);
+
+    return await ScreenTime.getTimeUsed(
+      target_id, 
+      { name:feature }, 
+      {
+        day: Number(date.day), 
+        month: Number(date.month), 
+        year: Number(date.year),
+      }
+    );
   }
 
   // TIMERESTRICTION
-  @Router.post("/users/:user/restrictions")
-  async addRestriction(url: string, username: string) {
+  @Router.post("restrictions/:username/:feature")
+  async addRestriction(username: string, feature: string, limit: string) {
     // add restriction for user for specified url
+    const user_id = (await User.getUserByUsername(username))._id;
+    return await TimeRestriction.addRestriction(user_id, { name: feature }, Number(limit));
   }
 
-  @Router.delete("/users/:user/restrictions")
-  async removeRestriction(url: string, username: string) {
+  @Router.put("restrictions/:username/:feature")
+  async updateRestriction(username: string, feature: string, limit: string) {
+    const user_id = (await User.getUserByUsername(username))._id;
+    return await TimeRestriction.setRestriction(user_id, { name: feature }, Number(limit));
+  }
+
+  @Router.delete("restrictions/:username/:feature")
+  async removeRestriction(username: string, feature: string) {
     // remove restriction for user for specified url
+    const user_id = (await User.getUserByUsername(username))._id;
+    return await TimeRestriction.removeRestriction(user_id, { name: feature });
   }
 
-  @Router.get("/users/:user/restrictions/:url")
-  async isRestricted(url: string, username: string) {
+  @Router.get("restrictions/:username/:feature")
+  async isRestricted(username: string, feature: string) {
     // check restriction for user for specified url
+    const user_id = (await User.getUserByUsername(username))._id;
+    // check timeUsed for that restriction
+    const date = new Date()
+    const time = await ScreenTime.getTimeUsed(
+      user_id,
+      { name: feature }, 
+      { 
+        day: date.getDay(),
+        month: date.getMonth(),
+        year: date.getFullYear(),
+      }
+    );
+    return await TimeRestriction.restrictionExceeded(user_id, { name: feature }, time);
   }
 
-  // SEARCH
-  @Router.get("/search")
-  async searchPosts(search: string) {
-    // return all posts matching some keywords
-  }
+
 }
 
 export default getExpressRouter(new Routes());

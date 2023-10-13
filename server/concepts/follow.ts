@@ -81,13 +81,15 @@ export default class FollowConcept {
     if (followRelation === null) {
       throw new RelationNotFoundError(viewer, target);
     }
+    // remove accepted follow request?
+    await this.requests.deleteOne({from: viewer, to: target})
     return { msg: "Relation removed!" };
   }
 
   async getRelations(user: ObjectId) {
     // returning all relations with this user for now
     const relations = await this.relations.readMany({
-      $or: [{ user1: user }, { user2: user }],
+      $or: [{ viewer: user }, { target: user }],
     });
 
     return relations
@@ -105,12 +107,20 @@ export default class FollowConcept {
     return request;
   }
 
-  private async isNotViewing(viewer: ObjectId, target: ObjectId) {
+  async isNotViewing(viewer: ObjectId, target: ObjectId) {
     const relation = await this.relations.readOne({ viewer, target});
     if (relation !== null || viewer.toString() === target.toString()) {
       throw new RelationAlreadyExistsError(viewer, target);
     }
   }
+
+  async isViewing(viewer: ObjectId, target: ObjectId) {
+    const relation = await this.relations.readOne({ viewer, target});
+    if (relation === null && viewer.toString() !== target.toString()) {
+      throw new RelationNotFoundError(viewer, target);
+    }
+  }
+  
 
   private async canSendRequest(u1: ObjectId, u2: ObjectId) {
     await this.isNotViewing(u1, u2);
