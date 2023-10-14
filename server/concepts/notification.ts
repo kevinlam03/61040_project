@@ -28,6 +28,7 @@ export default class NotificationConcept {
 
     async removeNotification(notification: ObjectId) {
         // delete notification
+        await this.isNotification(notification);
         const result = await this.notifications.deleteOne({_id: notification})
         
         return { msg: "Deleted notification!" }
@@ -35,7 +36,7 @@ export default class NotificationConcept {
 
     async readNotification(notificationID: ObjectId) {
         // throw NotFoundError if not a real notification
-        this.notificationExists(notificationID);
+        this.isNotification(notificationID);
         
         await this.notifications.updateOne(
             {_id:notificationID}, 
@@ -56,18 +57,20 @@ export default class NotificationConcept {
         return await this.notifications.readMany({user})
     }
 
-    async notificationExists(notificationID: ObjectId) {
+    async isNotification(notificationID: ObjectId) {
         const notification = await this.notifications.readOne({_id:notificationID})
         if (notification === null) {
             throw new NotFoundError("Notification not found!")
         }
     }
 
-    async userHasNotification(user: ObjectId, notificationID: ObjectId) {
+    async canRemoveNotification(user: ObjectId, notificationID: ObjectId) {
         // notification must exist, and user must be user of that notification
+        await this.isNotification(notificationID);
+
         const notif = await this.notifications.readOne({_id: notificationID, user: user});
         if (notif === null) {
-            throw new NotFoundError("Notification not found for this user!")
+            throw new NotAllowedError("This user doesn't have this notification!")
         }
     }
 }

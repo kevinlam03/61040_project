@@ -273,7 +273,7 @@ class Routes {
 
     // check if user is allowed to remove notification
     const user_id = WebSession.getUser(session);
-    Notification.userHasNotification(user_id, new ObjectId(notificationID));
+    Notification.canRemoveNotification(user_id, new ObjectId(notificationID));
     return await Notification.removeNotification(new ObjectId(notificationID))
   }
 
@@ -284,9 +284,9 @@ class Routes {
       throw new BadValuesError("NotificationID must be non-empty!");
     }
 
-    // check if user is allowed to read notification
+    // check if user is allowed to read notification, you can read it if you can remove it
     const user_id = WebSession.getUser(session);
-    Notification.userHasNotification(user_id, new ObjectId(notificationID));
+    Notification.canRemoveNotification(user_id, new ObjectId(notificationID));
 
     return await Notification.readNotification(new ObjectId(notificationID));
   }
